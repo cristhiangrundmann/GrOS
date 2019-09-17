@@ -7,7 +7,7 @@ bits 16
 %define DRIVE 0x80
 %define SECTORS 0x10
 %define BUFFER 0x7e00
-%define STACKHI 0x7bfe
+%define STACKHI 0x7b
 %define ERRORWORD 0x0446
 %define CLEARCHAR 0xf9
 %define CLEARBACK 0x07
