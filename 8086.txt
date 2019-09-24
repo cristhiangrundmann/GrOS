@@ -1,0 +1,81 @@
+mod
+00
+	000=[BX+SI]		100=[SI]
+	001=[BX+DI]		101=[DI]
+	010=[BP+SI]		110=[DATA]
+	011=[BP+DI]		111=[BX]
+10 or 01
+	=00 +OFFSET but 110=[BP+DISP]
+11
+	reg-08-16				seg-16
+	000=AL-AX	100=AH-SP	000=ES
+	001=CL-CX	101=CH-BP	001=CS
+	010=DL-DX	110=DH-SI	010=SS
+	011=BL-BX	111=BH-DI	011=DS
+	
+seg ovrd	001ss110
+			6-010g
+			
+
+REP, REPE, REPZ=F3 || REPNE, REPNZ=F2
+
+mov i > r		B-wreg data
+mov i > r/m		C-011w mod000r/m [adr] data
+mov r/m > seg	8E modsegr/m
+mov r/m <> r	8-10dw modregr/m [adr]
+mov ax/al <> m	A-00dw adr
+
+int i	CD data8
+int 3	CC
+into	CE
+
+inc/dec r		FE mod00Dr/m D=dec
+inc/dec r16		0100Dreg
+
+jump if flag	7-fffn
+fff				fff
+000 OF			100 SF
+001 CF			101 PF
+010 ZF			110 SF!=OF
+011 CF or ZF	111 ZF or SF!=OF
+
+jmp short-----------------EB data8
+call far abs dir----------9A data32
+call/jmp near rel---------E-100c c=jmp data16
+call/jmp abs ind----------FF modjjfr/m jj=01=call jj=10=jmp f=far
+call/jmp far abs dir------1jjj1010 data32 jjj=001=call jjj=110=jump
+
+ret		1100f01p [data16] f=far p=no pop
+
+???=ttt
+neg=011
+mul=100 ((dx:)ax = al/ax*r/m)
+div=110 ((dx:)ax / r/m -> al/ax=quotient, ah/dx=remainder)
+? r/m-------------F-011w modtttr/m
+
+???=ttt
+add=000
+sub=101
+and=100
+or =001
+xor=110
+? al/ax, i----------00ttt10w data
+? r/m, i------------8-000w modtttr/m data
+? r/m16, i8---------10ttt011 modtttr/m data8 sign
+? r/m, r------------00ttt0dw modregr/m
+
+shift r/m-----------110i00cw mod10Rr/m i=NOT i8 c=cl R=right
+
+cmp r/m, r----------3-10dw modregr/m [addr]
+cmp i, al/ax--------3-110w data
+cmp i, r/m----------8-00ff mod111r/m [addr] data
+ff
+00=r/m8, i8
+01=r/m16, i16
+11=r/m16, i8
+
+pusha/popa----------6-000P P=pop
+push/pop m16--------1ppp-F modpp0r/m p=push
+push/pop r16--------0101Preg P=pop
+push i--------------6-10W0 data W=not word
+push/pop sreg-------00reg11P P=pop
