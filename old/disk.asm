@@ -101,7 +101,7 @@ key1:
 	mov ah, 0x9
 	mov cx, 0x1
 	int 0x10
-	inc dl	
+	inc dl
 key0:
 	cmp ah, 0x4b
 	jne key2
