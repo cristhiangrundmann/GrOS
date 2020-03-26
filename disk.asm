@@ -1,340 +1,321 @@
 org 0x7c00
 bits 16
 
-%define STACK 0x7b
-%define COLOR_A 0x10
-%define COLOR_B 0x30
-%define COLOR_C 0x10
-%define COLOR_N 0x0f
-%define BUFFER 0x7e00
-%define ASCIIX 0x8
-%define ASCIIY 0x0
-%define ASCIIPOS 0x2 * (0x50 * ASCIIY + ASCIIX)
-%define BOARDX 0x8
-%define BOARDY 0x8
-%define BOARDPOS 0x2 * (0x50 * BOARDY + BOARDX)
-%define TARGETX 0x20
-%define TARGETY 0x18
-%define TARGETPOS 0x2 * (0x50 * TARGETY + TARGETX)
-%define SECTORS 1
+%define SECTORS 0x1
+%define STACK 0x7
 
-BEGIN:
+%define COLOR_HA 0x10
+%define COLOR_HB 0x30
+%define COLOR_AS 0x20
+%define COLOR_ED 0x0f
+%define COLOR_DE 0x00
+%define COLOR_CU 0x40
+
 main:
-    ;SET SEGMENTS
+
+    ;REGISTER SETUP
     xor ax, ax
     mov ds, ax
+    mov bp, ax
+    mov sp, ax
+    mov bp, sp
+    mov ah, STACK
     mov ss, ax
     mov ah, 0xb8
     mov es, ax
-    mov ah, STACK
-    mov sp, ax
-    mov sp, bp
 
-    ;CLEAR SCREEN
-    ;mov ax, 0x3
-    ;int 0x10
-
-    mov cx, (BOARDY*0x100 + BOARDX)
-    call showcontents
-
-edit:
-    call readkey
-    cmp cl, BOARDX-1
-    jne edit0
-    mov cl, BOARDX+0x3f
-    dec ch
-edit0:
-    cmp cl, BOARDX+0x40
-    jne edit1
-    mov cl, BOARDX
-    inc ch
-edit1:
-    cmp ch, 0x19
-    jne edit2
-    xor ch, ch
-edit2:
-    cmp ch, 0xff
-    jne edit3
-    mov ch, 0x18
-edit3:
-    cmp ch, 0x18
-    jne edit4
-    and cl, 0xf
-    or cl, 0x20
-edit4:
-    jmp edit
-
-;al = ascii
-;cx = cursor
-type:
-    pusha
-    mov dh, al
-    mov ah, 0x8
-    int 0x10
-    mov bl, ah
-    and bl, 0xf0
-	xor bl, COLOR_N & 0x0f
-    mov al, dh
-	mov ah, 0x9
-	mov cx, 0x1
-	int 0x10
-    popa
-    ret
-
-setcursor:
-    pusha
-    mov ah, 0x2
-    mov dx, cx
-    int 0x10
-    popa
-    ret
-
-readkey:
-    call setcursor
-    xor ah, ah
-    int 0x16
-    cmp al, 0x7e
-    jg readkey0
-    cmp al, 0x20
-    jb readkey0
-    pusha
-    cmp ch, BOARDY
-    jb readkey_b0
-    cmp al, '0'
-    jb readkey_b1
-    cmp al, 'F'
-    jg readkey_b1
-    cmp al, '9'
-    jbe readkey_b2
-    cmp al, '0'
-    jge readkey_b2
-readkey_b1:
-    popa
-    ret
-readkey_b0:
-    call type
-    sub cl, BOARDX
-    shl cx, 1
-    mov dh, cl
-    and cl, 0x3f
-    shr dh, 0x6
-    add ch, dh
-    add ch, BOARDY
-    add cl, BOARDX
+    jmp draw
     
-    mov dh, al
-    shr al, 0x4
-    call nib2txt
-    call setcursor
-    call type
+loop:
 
-    mov al, dh
+    ;CURSOR
+    mov dh, [es:di+0x1]
+    mov cl, dh
+    and cl, 0x0f
+    or cl, COLOR_CU
+    mov [es:di+0x1], cl
+
+    xor ax, ax
+    int 0x16
+
+    mov [es:di+0x1], dh
+
+    cmp al, 0x20
+    jb loop_noascii
+
+    mov ah, [es:di+0x1]
+    and ah, 0xf0
+    or ah, COLOR_ED
+
+    cmp di, 0xa0 * 0x8
+    jb loop_ascii
+
+    mov cl, al
+    call hexascii
     and al, 0x0f
-    call nib2txt
-    inc cl
-    call setcursor
-    call type
-    popa
-	inc cl
-    ret
-readkey_b2:
-    popa
-    ret
-readkey0:
-    cmp ah, 0x4b
-    jne readkey1
-    dec cl
-readkey1:
-    cmp ah, 0x4d
-    jne readkey2
-    inc cl
-readkey2:
-    cmp ah, 0x48
-    jne readkey3
-    dec ch
-readkey3:
-    cmp ah, 0x50
-    jne readkey4
-    inc ch
-readkey4:
-    cmp ah, 0x3f
-    jne readkey5
-    call gettarget
-	pusha
-	mov ah, 0x42
-	mov si, DAP
-	int 0x13
-	jc main
-	popa
-	call showcontents
-readkey5:
-    cmp ah, 0x43
-    jne readkey6
-    call gettarget
-	mov si, BUFFER
-	mov di, BOARDPOS
-readkey5a:
-    mov bl, 0x20
-	call readdata
-	add di, 0xa0
-	add si, 0x20
-	cmp si, BUFFER + 0x200
-	jb readkey5a
-	pusha
-	mov ax, 0x4300
-	mov si, DAP
-	int 0x13
-	jc main
-	call showcontents
-	popa
-readkey6:
-    ret
+    call hexascii
+    cmp al, cl
+    jne loop
 
-;show buffer content and target
-showcontents:
-    pusha
-    mov si, BUFFER
-    mov di, ASCIIPOS
-    mov bl, 0x40
-showcontents0:
-    mov ah, [ds:si]
-    mov al, ah
-    and al, 0b11100000
-    jnz showcontents1
-    mov ah, 0xf9
-showcontents1:
-    mov al, ah
-    mov ah, COLOR_C
     mov [es:di], ax
+    push di
+    call swap
+    jmp loop_type_done
+
+loop_ascii:
+    mov [es:di], ax
+    push di
+    call swap
+    call type
     inc di
     inc di
-    inc si
-    dec bl
-    jnz showcontents2
-    add di, 0x20
-    mov bl, 0x40
-showcontents2:
-    cmp si, BUFFER + 0x200
-    jne showcontents0
-    mov si, BUFFER
-    mov di, BOARDPOS
-    mov bl, 0x20
-showcontents3:
-    call writedata
+loop_type_done:
+    call type
+    pop di
+    inc di
+    inc di
+    jmp loop
+
+loop_noascii:
+    cmp ah, 0x4b
+    jne loop_nleft
+    dec di
+    dec di
+loop_nleft:
+    cmp ah, 0x4d
+    jne loop_nright
+    inc di
+    inc di
+    jmp loop
+    
+loop_nright:
+    cmp ah, 0x48
+    jne loop_nup
+    sub di, 0xa0
+loop_nup:
+    cmp ah, 0x50
+    jne loop_ndown
+    add di, 0xa0 
+loop_ndown:
+    cmp ah, 0x0f
+    jne loop_ntab
+    call swap
+loop_ntab:
+    cmp ah, 0x42
+    je loop_disk
+    cmp ah, 0x43
+    jne loop
+    pusha
+    mov di, 0xa0*0x8
+    xor si, si
+    mov cx, 0x1020
+loop0:
+    call read
     add si, 0x20
     add di, 0xa0
-    cmp si, BUFFER + 0x200
-    jb showcontents3
-    mov si, TARGET
-    mov di, TARGETPOS
-    mov bl, 0x8
-    call writedata
+    dec ch
+    jnz loop0
+    popa
+
+loop_disk:
+    pusha
+
+    ;TARGET
+    mov cl, 0x8
+    mov di, 0xa0*0x18
+    mov si, TARGET - STACK*0x1000
+    call read
+    mov al, 0x0
+    mov si, DAP
+    int 0x13
+    jc main
+    popa
+draw:
+    pusha
+    mov ax, 0x3
+    int 0x10
+    ;ASCII
+    mov dh, COLOR_AS
+    mov si, 0x1ff
+    mov di, 0xa0*0x8-0x22
+    mov ah, COLOR_DE
+draw_as:
+    mov cl, 0x40
+draw_as0:
+    mov [es:di+0x1], dh
+    mov al, [ss:si]
+    call type
+    dec di
+    dec di
+    dec si
+    jl draw_hex
+    dec cl
+    jnz draw_as0
+    sub di, 0x20
+    jmp draw_as
+
+    ;HEX
+draw_hex:
+    mov di, 0xa0 * 0x8
+    xor si, si
+    mov cx, 0x1020
+draw_hex0:
+    call write
+    add si, 0x20
+    add di, 0xa0
+    dec ch
+    jnz draw_hex0
+
+    ;TARGET
+    mov cl, 0x8
+    mov si, TARGET - STACK*0x1000
+    mov di, 0xa0*0x18
+    call write
+    popa
+    jmp loop
+
+;si = source
+;di = destination
+;cl = count
+write:
+    pusha
+    mov ah, COLOR_DE
+    mov ch, COLOR_HA
+write0:
+    mov al, [ss:si]
+    inc si
+    mov [es:di+0x1], ch
+    mov [es:di+0x3], ch
+    call type
+    inc di
+    inc di
+    call type
+    xor ch, COLOR_HA ^ COLOR_HB
+    inc di
+    inc di
+    dec cl
+    jnz write0
     popa
     ret
 
-;ds:si = destination
-;es:di = source on screen
-;bl = byte count > 0
-readdata:
+;di = source
+;si = destination
+;cl = count
+read:
     pusha
-readdata0:
+read0:
     mov al, [es:di]
-    call txt2nib
+    call hexascii
     mov ah, al
     shl ah, 0x4
     inc di
     inc di
     mov al, [es:di]
-    call txt2nib
-    xor ah, al
+    call hexascii
+    or ah, al
     inc di
     inc di
-    mov [ds:si], ah
+    mov [ss:si], ah
     inc si
-    dec bl
-    jz readdata1
-    jmp readdata0
-readdata1:
+    dec cl
+    jnz read0
     popa
     ret
 
-;ds:si = source
-;es:di = destination on screen
-;bl = byte count > 0
-writedata:
-    pusha
-    mov ah, COLOR_A
-writedata0:
-    mov cl, [ds:si]
-    mov al, cl
-    shr al, 0x4
-    call nib2txt
-    mov [es:di], ax
-    inc di
-    inc di
-    mov al, cl
-    and al, 0x0f
-    call nib2txt
-    mov [es:di], ax
-    inc di
-    inc di
-    inc si
-    xor ah, (COLOR_A ^ COLOR_B) & 0xf0
-    dec bl
-    jnz writedata0
-    popa
+
+
+swap:
+    push ax
+    mov ax, di
+    mov ch, 0xa0
+    cmp ax, 0xa0*0x8
+    jnb swap_hex
+    div ch
+    shl ax, 0x1
+    shl ah, 0x1
+    jnc swap_even
+    inc al
+swap_even:
+    shr ah, 0x1
+    add al, 0x8
+    jmp swap_do
+swap_hex:
+    sub ax, 0xa0*0x8
+    div ch
+    and ah, 0xff-0x2
+    shr ax, 0x1
+    jnc swap_even2
+    add ah, 0x40
+swap_even2:
+swap_do:
+    mov cl, ah
+    mul ch
+    mov ch, 0x0
+    add ax, cx
+    mov di, ax 
+    pop ax
     ret
 
-END:
-
-;times (0x1be - ($ - $$)) db 0x00
-
-;PARTITION_STATUS: db 0x80
-;CHS_START: db 0x0, 0x0, 0x0
-;PARTITION_TYPE: db 0xff
-;CHS_END: db 0x0, 0x0, 0x0
-;LBA_START: dd 0x0
-;VOLUME_SIZE: dd SECTORS
+;swap nibble with ASCII char
+;eg. 0x9 <-> '9'
+hexascii:
+    xor al, 0x30
+    cmp al, 0x3a
+    jb hexascii0
+    add al, 0x99
+    jc hexascii0
+    sub al, 0x92
+hexascii0:
+    ret
 
 DAP:
 db 0x10
 db 0x0
 dw 0x1
-dw BUFFER
 dw 0x0
-TARGET: dq 0x1
+dw STACK*0x100
+TARGET: dq 0x0
 
 
-gettarget:
+times (0x1be - ($ - $$)) db 0x0
+
+PARTITION_STATUS: db 0x80
+CHS_START: db 0x0, 0x0, 0x0
+PARTITION_TYPE: db 0xff
+CHS_END: db 0x0, 0x0, 0x0
+LBA_START: dd 0x0
+VOLUME_SIZE: dd SECTORS
+
+;ah = forecolor
+;al = data
+;di = destination
+type:
     pusha
-    mov si, TARGET
-    mov di, TARGETPOS
-    mov bl, 0x8
-    call readdata
+    cmp di, 0xa0 * 0x8
+    jb type_do
+    push di
+    shr di, 0x2
+    jc type_odd
+    shr al, 0x4
+    jmp type_di
+type_odd:
+    and al, 0x0f
+type_di:
+    call hexascii
+    pop di
+type_do:
+    cmp al, 0x20
+    jnb type_char
+    mov al, 0xf9
+type_char:
+    mov bx, [es:di]
+    and bh, 0xf0
+    or ah, bh
+    mov [es:di], ax
     popa
     ret
 
-;al = '0' ... '9' | 'A' .. 'F'
-txt2nib:
-	sub al, '0'
-	cmp al, 0x9
-	jbe txt2nib0
-	sub al, 'A' - '9' - 0x1
-txt2nib0:
-	ret
 
 
-;al = 0x00 ... 0x0f
-nib2txt:
-	add al, '0'
-	cmp al, '9'
-	jbe nib2txt0
-	add al, 'A' - '9' - 0x1
-nib2txt0:
-	ret
-
-
-times (0x1fe - ($ - $$)) db 0x0
+times 0x1fe - ($-$$) db 0x0
 db 0x55, 0xaa
-
-times (SECTORS * 0x200 - ($ - $$)) db 0x00
