@@ -12,13 +12,13 @@ bits 16
 main:
     ;SEGMENTS
     xor ax, ax
-    mov ds, ax
     mov bp, ax
     mov sp, bp
     mov ah, 0xb8
     mov es, ax
     mov ah, 0x7
     mov ss, ax
+    mov ds, ax
 
     ;CLEAR SCREEN
     mov ax, 0x3
@@ -34,7 +34,8 @@ draw:
     mov di, 0x8e
     mov cl, 0x7
 draw0:
-    mov al, [ss:si]
+    lodsb
+    dec si
     call type
     dec di
     dec di
@@ -45,7 +46,8 @@ draw0:
 draw1:
     mov di, 0x7e
 draw2:
-    mov al, [ss:si]
+    lodsb
+    dec si
     call type
     dec si
     dec di
@@ -105,7 +107,8 @@ loopm4:
     cmp al, ch
     jne loop
 
-    mov [es:di], al
+    stosb
+    dec di
     mov cl, 0x1
     push di
     and di, 0xffff - 0x2
@@ -183,7 +186,7 @@ loop7:
     call read
     pop es
     mov al, 0x0
-    mov si, DAP
+    mov si, DAP - 0x7000
     int 0x13
     jc main
     popa
@@ -204,7 +207,7 @@ read0:
     or al, ah
     inc di
     inc di
-    mov [ss:si], al
+    mov [ds:si], al
     inc si
     dec cl
     jnz read0
@@ -231,13 +234,11 @@ type1:
     mov al, dh
     shr al, 0x4
     call hexascii
-    mov [es:di], ax
-    inc di
-    inc di
+    stosw
     mov al, dh
     and al, 0x0f
     call hexascii
-    mov [es:di], ax
+    stosw
     call swap
     popa
     ret
