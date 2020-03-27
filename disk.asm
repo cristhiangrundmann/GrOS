@@ -1,11 +1,12 @@
 org 0x7c00
 bits 16
 
-%define SECTORS 1
+%define SECTORS 2
 %define COLOR_ASCII 0x20
 %define COLOR_HEX_A 0x10
 %define COLOR_HEX_B 0x30
 %define COLOR_CURSOR 0x40
+%define COLOR_VOID 0x50
 %define COLOR_DE 0x00
 %define COLOR_ED 0x0f
 
@@ -20,11 +21,13 @@ main:
     mov ss, ax
     mov ds, ax
 
+    cld
+
+draw:
+
     ;CLEAR SCREEN
     mov ax, 0x3
     int 0x10
-
-draw:
     pusha
     push es
     push 0xb800 + 0xa*0x7
@@ -61,26 +64,25 @@ draw3:
     pop es
     popa
 
-
 loop:
-    cmp di, 0x10000 - 0x2
-    jne loopm1
-    mov di, 0xa0 - 0x2
-loopm1:
+    mov ax, es
     cmp di, 0xa0
-    jne loopm2
+    jne loopcm1
     xor di, di
-loopm2:
-    mov cx, es
-    cmp cl, 0xa * 0x19
-    jne loopm3
-    mov cl, 0x0
-loopm3:
-    cmp cl, 0xa * (-1)
-    jne loopm4
-    mov cl, 0xa * 0x18
-loopm4:
-    mov es, cx
+loopcm1:
+    cmp di, -0x2
+    jne loopcm2
+    mov di, 0xa0-0x2
+loopcm2:
+    cmp al, 0xa * (-0x1)
+    jne loopc0
+    mov al, 0xa * 0x17
+loopc0:
+    cmp al, 0xa * 0x18
+    jne loopc1
+    mov al, 0x0
+loopc1:
+    mov es, ax
 
     ;CURSOR
     mov dh, [es:di+0x1]
@@ -96,6 +98,7 @@ loopm4:
 
     cmp al, 0x20
     jb loop1
+    
     mov cx, es
     cmp cl, 0xa * 0x8
     jb loop0
@@ -159,7 +162,7 @@ loop6:
     cmp ah, 0x42
     je loop7
     cmp ah, 0x43
-    jne loop
+    jne loop8
     pusha
     push es
     push 0xb800
@@ -190,8 +193,12 @@ loop7:
     int 0x13
     jc main
     popa
-    
     jmp draw
+loop8:
+    cmp ah, 0x1
+    jne loop
+    call 0x7000
+    jmp loop
 
 read:
     pusha
@@ -207,7 +214,7 @@ read0:
     or al, ah
     inc di
     inc di
-    mov [ds:si], al
+    mov [si], al
     inc si
     dec cl
     jnz read0
@@ -301,3 +308,5 @@ swap3:
 
 times 0x1fe - ($ - $$) db 0x0
 db 0x55, 0xaa
+
+times 0x200 * SECTORS - ($-$$) db 0x0

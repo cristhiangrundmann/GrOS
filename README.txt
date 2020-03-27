@@ -3,6 +3,7 @@ LEFT, RIGHT, UP AND DOWN ARROW: move cursor.
 TAB: swap cursor position, from ASCII panel to hex and vice versa.
 F8: read sector from disk.
 F9: write buffer into disk.
+ESC: call code on buffer
 
 On ASCII panel, any ASCII key writes into buffer.
 On HEX panel, only [0-9A-F] writes into buffer (note uppercase letters).
