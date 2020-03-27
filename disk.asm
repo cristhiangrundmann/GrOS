@@ -216,7 +216,7 @@ type:
     or ah, COLOR_ASCII
     mov dh, al
     cmp al, 0x20
-    ja type0
+    jae type0
     mov al, 0xf9
 type0:
     mov [es:di], ax
