@@ -1,7 +1,7 @@
 org 0x7c00
 bits 16
 
-%define SECTORS 0x1
+%define SECTORS 0x2
 
 %define BCOLORAS 0x20
 %define BCOLORH1 0x10
@@ -10,9 +10,12 @@ bits 16
 %define FCOLORDE 0x00
 %define FCOLORED 0x05
 
+    mov ah, 0x5
+    mov cx, 0x4200
+    int 0x16
 
 main:
-    cld
+    cld    
     xor ax, ax
     mov bp, ax
     mov sp, bp
@@ -35,7 +38,7 @@ draw:
     mov es, bx
     mov ah, FCOLORDE
     mov si, TARGET - 0x7000
-    mov di, 0x28
+    mov di, 0x20
     mov cl, 0x8
 draw0:
     lodsb
@@ -48,7 +51,7 @@ draw0:
     mov ch, 0x20
 draw1:
     mov cl, 0x10
-    mov di, 0x28
+    mov di, 0x20
 draw2:
     lodsb
     call type
@@ -62,10 +65,8 @@ draw2:
     popa
 
 mloop:
-    
-    cmp di, 0xa0
-    jb mloopc0
-    xor di, di
+
+    and di, 0x7f
 mloopc0:
 
     mov ax, es
@@ -97,7 +98,7 @@ mloopc3:
     cmp bh, 0x10
     jb mloop
 
-    cmp di, 0x48
+    cmp di, 0x40
     jb mloop0
     mov ah, al
     call hexascii
@@ -131,9 +132,6 @@ mloop1:
     jne mloop2
     dec di
     dec di
-    jnl mloopc1
-    mov di, 0xa0-0x2
-mloopc1:
     jmp mloop
 mloop2:
     cmp al, 0x4d
@@ -162,7 +160,7 @@ mloop5:
     push es
     push 0xb800
     pop es
-    mov di, 0xa0*0x4 + 0x50
+    mov di, 0xa0*0x4 + 0x40
     mov cl, 0x10
     xor si, si
 mloop6:
@@ -180,7 +178,7 @@ mloop7:
     pop es
     mov cl, 0x8
     mov si, TARGET - 0x7000
-    mov di, 0x50
+    mov di, 0x40
     call read
     pop es
     mov al, 0x0
@@ -240,7 +238,7 @@ type0:
     ret
 
 swap:
-    cmp di, 0x48
+    cmp di, 0x40
     jl swap0
     shr di, 0x2
 swap0:
@@ -277,4 +275,7 @@ VOLUME_SIZE: dd SECTORS
 times 0x1fe-($-$$) db 0x0
 db 0x55, 0xaa
 
+
+;OTHER SECTORS
+%include 'tutorial'
 times (SECTORS - 0x1) * 0x200 db 0x0
