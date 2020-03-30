@@ -26,7 +26,7 @@ The data you edit is a raw disk sector, and on top of both panels is the `8 byte
 
 Everything else is void and you can't write on it, even tough you can hover the cursor on it.
 
-There is a red cursor that indicates where you are typing. It only appears when it's wating a keystroke.
+There is a red cursor that indicates where you are typing. It only appears when GrOS is waiting a keystroke.
 When the cursor is on the ASCII panel, you can type any letter. On the hex board, you can only type the digits and the upper case letters from `A` to `F`.
 
 When you type on any panel, the bytes changed are displayed in a different color until you save your progress or discard it.
