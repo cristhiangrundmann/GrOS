@@ -65,18 +65,18 @@ draw2:
     popa
 
 mloop:
-
     and di, 0x7f
+    
 mloopc0:
 
     mov ax, es
-    cmp ax, 0xb800
+    cmp ax, 0xb800 + 0xa*0x2
     jnl mloopc2
-    mov ax, 0xb800 + 0xa * 0x31
+    mov ax, 0xb800 + 0xa * 0x23
 mloopc2:
-    cmp ax, 0xb800 + 0xa * 0x32
+    cmp ax, 0xb800 + 0xa * 0x24
     jb mloopc3
-    mov ax, 0xb800
+    mov ax, 0xb800 + 0xa*0x2
 mloopc3:
     mov es, ax
 
@@ -188,7 +188,7 @@ mloop7:
     popa
     jmp draw
 mloop8:
-    cmp al, 0x1
+    cmp al, 0x86
     jne mloop
     call 0x7000
     jmp mloop
