@@ -190,7 +190,7 @@ mloop7:
 mloop8:
     cmp al, 0x86
     jne mloop
-    call swap
+    call swap ;switch to call 0x7000
     jmp mloop
 
 read:
