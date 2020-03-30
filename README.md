@@ -15,6 +15,7 @@ You can assemble the source code yourself with NASM:
 
 ## Getting started
 When booted, GrOS should display a `16 colors 80x50 text mode screen, with an 8x8 font`.
+Like this: ![](preview.png)
 
 Like on most hex editors, GrOS has an ASCII and a hexadecimal panel available for editing.
 
