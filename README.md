@@ -46,11 +46,13 @@ You can only use the keyboard and be aware that the keyboard layout is whatever 
   
   - **F12**:  Calls the code on the target disk sector.
     **Use with CAUTION, as it may crash GrOS or corrupt ANY disk connected.**
+    For safety reasons, it's "disabled" by default. By default it does the same as **TAB**.
   
   - **TAB**: Swap the cursor position between the ASCII and the hex panels.
 
 ## Notes
   - The read and write functions use the `DL` register to indicate which disk to operate.
 When the BIOS jumps execution into GrOS, this same register holds which disk GrOS is running on.
-The GrOS code never changes the value of this register. The only way to change it is by calling the sector with **F12**.
-
+The GrOS code never changes the value of this register. The only way to change it is by calling the sector with **F12** (disabled by default).
+  - By default, **F12** calls the swap function, which is also called when you press **TAB**.
+  To enable the true **F12**, you have to change the call address at the boot sector (the disk sector buffer is at `0x0:0x7000`).

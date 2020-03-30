@@ -15,7 +15,7 @@ bits 16
     int 0x16
 
 main:
-    cld    
+    cld
     xor ax, ax
     mov bp, ax
     mov sp, bp
@@ -190,7 +190,7 @@ mloop7:
 mloop8:
     cmp al, 0x86
     jne mloop
-    call 0x7000
+    call swap
     jmp mloop
 
 read:
