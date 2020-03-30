@@ -12,23 +12,22 @@ bits 16
 
 
 main:
+    cld
     xor ax, ax
     mov bp, ax
     mov sp, bp
-    mov ah, 0xb8
-    mov es, ax
     mov ah, 0x07
     mov ds, ax
     mov ss, ax
-    cld
-    mov di, 0x28
+    mov ah, 0xb8
+    mov es, ax
 
-clear:
     mov ax, 0x3
     int 0x10
     mov ax, 0x1112
     mov bl, 0x0
     int 0x10
+
 draw:
     pusha
     push es
@@ -63,15 +62,29 @@ draw2:
     popa
 
 mloop:
-
     
+    cmp di, 0xa0
+    jb mloopc0
+    xor di, di
+mloopc0:
+
+    mov ax, es
+    cmp ax, 0xb800
+    jnl mloopc2
+    mov ax, 0xb800 + 0xa * 0x31
+mloopc2:
+    cmp ax, 0xb800 + 0xa * 0x32
+    jb mloopc3
+    mov ax, 0xb800
+mloopc3:
+    mov es, ax
 
     mov ax, [es:di]
     push ax
     and ah, 0x0f
     or ah, BCOLORCU
     mov [es:di], ax
-
+   
     xor ax, ax
     int 0x16
 
@@ -79,6 +92,10 @@ mloop:
 
     cmp al, 0x20
     jb mloop1
+
+    mov bx, [es:di]
+    cmp bh, 0x10
+    jb mloop
 
     cmp di, 0x48
     jb mloop0
@@ -108,35 +125,38 @@ mloop0:
     mov ah, FCOLORED
     call type
     jmp mloop
-
 mloop1:
-    cmp ah, 0x4b
+    mov al, ah
+    cmp al, 0x4b
     jne mloop2
     dec di
     dec di
+    jnl mloopc1
+    mov di, 0xa0-0x2
+mloopc1:
     jmp mloop
 mloop2:
-    cmp ah, 0x4d
+    cmp al, 0x4d
     je mloop_incdi
-    cmp ah, 0x48
+    cmp al, 0x48
     jne mloop3
     mov cx, es
     sub cx, 0xa
     mov es, cx
 mloop3:
-    cmp ah, 0x50
+    cmp al, 0x50
     jne mloop4
     mov cx, es
     add cx, 0xa
     mov es, cx
 mloop4:
-    cmp ah, 0x0f
+    cmp al, 0x0f
     jne mloop5
     call swap
 mloop5:
-    cmp ah, 0x42
+    cmp al, 0x42
     je mloop7
-    cmp ah, 0x43
+    cmp al, 0x43
     jne mloop8
     pusha
     push es
@@ -170,7 +190,7 @@ mloop7:
     popa
     jmp draw
 mloop8:
-    cmp ah, 0x1
+    cmp al, 0x1
     jne mloop
     call 0x7000
     jmp mloop
