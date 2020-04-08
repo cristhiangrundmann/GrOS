@@ -32,7 +32,9 @@ When the cursor is on the ASCII panel, you can type any letter. On the hex board
 
 When you type on any panel, the bytes changed are displayed in a different color until you save your progress or discard it.
 
-You can only use the keyboard and be aware that the keyboard layout is whatever the BIOS decides.
+You can only use the keyboard, but you can't set its layout. Don't shoot me.
+
+This project was originally intended to be the ultimate minimalistic OS dev environment. This repository will only contain the plain editor. The OS dev part is up to you, if you wish.
 
 ## Key controls
 
