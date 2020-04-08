@@ -54,4 +54,4 @@ You can only use the keyboard and be aware that the keyboard layout is whatever 
   - The read and write functions use the `DL` register to indicate which disk to operate.
 When the BIOS jumps execution into GrOS, this same register holds which disk GrOS is running on.
 The GrOS code never changes the value of this register. The only way to change it is by calling the sector with **F12** (disabled by default).
-  - In order to the **F12** command to be executed, the code must start with `0x9090` as a protection layer. This is actually performs two `NOP` instructions.
+  - In order to the **F12** command to be executed, the code must start with `0x9090` as a protection layer. This actually performs two `NOP` instructions.
