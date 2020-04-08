@@ -10,12 +10,13 @@ bits 16
 %define FCOLORDE 0x00
 %define FCOLORED 0x05
 
-    mov ah, 0x5
-    mov cx, 0x4200
-    int 0x16
+    ;mov ah, 0x5
+    ;mov cx, 0x4200
+    ;int 0x16
 
 main:
     cld
+    sti
     xor ax, ax
     mov bp, ax
     mov sp, bp
@@ -190,7 +191,11 @@ mloop7:
 mloop8:
     cmp al, 0x86
     jne mloop
-    call swap ;switch to call 0x7000
+    xor si, si
+    lodsw
+    cmp ax, 0x9090
+    jne mloop
+    call 0x7000
     jmp mloop
 
 read:
