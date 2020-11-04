@@ -62,3 +62,4 @@ When the BIOS jumps execution into GrOS, this same register determines which dis
 The GrOS code never changes the value of this register. The only way to change it is by running the code in buffer.
   - In order to the **F12** command to be executed, the code must start with `0x9090` as a protection layer. This actually performs two `NOP` instructions.
   - The text displayed in the preview image is only for demonstration purposes.
+  - In an emulator like `qemu`, you can to add some extra sectors since editing the first is risky.
