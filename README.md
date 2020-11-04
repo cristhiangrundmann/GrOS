@@ -20,21 +20,21 @@ Like this: ![](preview.png)
 Like on most hex editors, GrOS has an ASCII and a hexadecimal panel available for editing.
 
 The ASCII panel is on the left with `16x32` characters.
-Right next to it is the hexadecimal panel, with `32x32` characters (since a byte is represented here with 2 hexadecimal digits).
+On the right is the hexadecimal panel, with `32x32` characters (since a byte is represented here with 2 hexadecimal digits).
 This panel has vertical bars of alternating colors to assist you in distinguishing the bytes.
 
-The data you edit is a raw disk sector, and on top of both panels is the `8 byte` address of that sector (in Little Endian).
+The data you edit is a raw disk sector, and on top of both panels is the `8 byte` *LBA* address of that sector (in Little Endian).
+If the data is also code, you can call it.
 
 Everything else is void and you can't write on it, even tough you can hover the cursor on it.
 
-There is a red cursor that indicates where you are typing. It only appears when GrOS is waiting a keystroke.
-When the cursor is on the ASCII panel, you can type any letter. On the hex board, you can only type the digits and the upper case letters from `A` to `F`.
+There is a red cursor that indicates where you are typing. It only appears when GrOS is waiting for a keystroke.
+When the cursor is on the ASCII panel, you can type any letter. On the hex board, you can only type the ten digits and the upper case letters from `A` to `F`.
 
-When you type on any panel, the bytes changed are displayed in a different color until you save your progress or discard it.
+When you type on any panel, the bytes changed are displayed in a different color until you save your progress on disk or discard it by reading a fresh sector.
 
-You can only use the keyboard, but you can't set its layout. Don't shoot me.
+You can only use the keyboard, with a fixed layout.
 
-This project was originally intended to be the ultimate minimalistic OS dev environment. This repository will only contain the plain editor. The OS dev part is up to you, if you wish.
 
 ## Key controls
 
@@ -47,13 +47,17 @@ This project was originally intended to be the ultimate minimalistic OS dev envi
   
   - **F9**: Writes the buffer into disk saving any changes. This also restore all colors.
   
-  - **F12**:  Calls the code on the target disk sector.
+  - **F12**:  Calls the code on buffer.
     **Use with CAUTION, as it may crash GrOS or corrupt ANY disk connected.**
   
   - **TAB**: Swap the cursor position between the ASCII and the hex panels.
 
 ## Notes
+  - When you type data in either the panels, only the video memory is changed. 
+  When you `save` the sector, the video data is dumped into a memory buffer which in turn is stored in the actual disk.
+  When you `read` the sector, the disk sector is read into the memory buffer and the video memory updates automatically.
+  It's only the memory buffer that can run custom code, of course, so you need to `save` the data into the disk to actually update it.
   - The read and write functions use the `DL` register to indicate which disk to operate.
-When the BIOS jumps execution into GrOS, this same register holds which disk GrOS is running on.
-The GrOS code never changes the value of this register. The only way to change it is by calling the sector with **F12** (disabled by default).
+When the BIOS jumps execution into GrOS, this same register determines which disk GrOS is editing.
+The GrOS code never changes the value of this register. The only way to change it is by running the code in buffer.
   - In order to the **F12** command to be executed, the code must start with `0x9090` as a protection layer. This actually performs two `NOP` instructions.
