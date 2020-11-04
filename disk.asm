@@ -8,7 +8,7 @@ bits 16
 %define BCOLORH2 0x30
 %define BCOLORCU 0x40
 %define FCOLORDE 0x00
-%define FCOLORED 0x05
+%define FCOLORED 0x0f
 
     ;mov ah, 0x5
     ;mov cx, 0x4200
@@ -279,8 +279,3 @@ VOLUME_SIZE: dd SECTORS
 
 times 0x1fe-($-$$) db 0x0
 db 0x55, 0xaa
-
-
-;OTHER SECTORS
-%include 'tutorial'
-times (SECTORS - 0x1) * 0x200 db 0x0
