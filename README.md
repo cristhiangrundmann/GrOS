@@ -26,7 +26,7 @@ This panel has vertical bars of alternating colors to assist you in distinguishi
 The data you edit is a raw disk sector, and on top of both panels is the `8 byte` *LBA* address of that sector (in Little Endian).
 If the data is also code, you can call it.
 
-Everything else is void and you can't write on it, even tough you can hover the cursor on it.
+Everything else is void and you can't write on it, even though you can hover the cursor on it.
 
 There is a red cursor that indicates where you are typing. It only appears when GrOS is waiting for a keystroke.
 When the cursor is on the ASCII panel, you can type any letter. On the hex board, you can only type the ten digits and the upper case letters from `A` to `F`.
@@ -53,7 +53,7 @@ You can only use the keyboard, with a fixed layout.
   - **TAB**: Swap the cursor position between the ASCII and the hex panels.
 
 ## Notes
-  - When you type data in either the panels, only the video memory is changed. 
+  - When you type data in either panel, only the video memory is changed. 
   When you `save` the sector, the video data is dumped into a memory buffer which in turn is stored in the actual disk.
   When you `read` the sector, the disk sector is read into the memory buffer and the video memory updates automatically.
   It's only the memory buffer that can run custom code, of course, so you need to `save` the data into the disk to actually update it.
@@ -61,3 +61,4 @@ You can only use the keyboard, with a fixed layout.
 When the BIOS jumps execution into GrOS, this same register determines which disk GrOS is editing.
 The GrOS code never changes the value of this register. The only way to change it is by running the code in buffer.
   - In order to the **F12** command to be executed, the code must start with `0x9090` as a protection layer. This actually performs two `NOP` instructions.
+  - The text displayed in the preview image is only for demonstration purposes.
