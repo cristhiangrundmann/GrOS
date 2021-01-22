@@ -35,17 +35,20 @@ main:
 draw:
     pusha
     push es
+
     mov bx, 0xb800 + 0xa*0x2
     mov es, bx
     mov ah, FCOLORDE
     mov si, TARGET - 0x7000
     mov di, 0x20
     mov cl, 0x8
+
 draw0:
     lodsb
     call type
     dec cl
     jnz draw0
+
     mov bl, 0xa*0x4
     mov es, bx
     xor si, si
@@ -129,34 +132,40 @@ mloop0:
     jmp mloop
 mloop1:
     mov al, ah
-    cmp al, 0x4b
+    cmp al, 0x4b ;0x4b = left arrow
     jne mloop2
     dec di
     dec di
     jmp mloop
 mloop2:
-    cmp al, 0x4d
+    cmp al, 0x4d ;0x4d = right arrow
     je mloop_incdi
-    cmp al, 0x48
+    cmp al, 0x48 ;0x48 = up arrow
     jne mloop3
     mov cx, es
     sub cx, 0xa
     mov es, cx
 mloop3:
-    cmp al, 0x50
+    cmp al, 0x50 ;0x50 = down arrow
     jne mloop4
     mov cx, es
     add cx, 0xa
     mov es, cx
 mloop4:
-    cmp al, 0x0f
+    cmp al, 0x0f ;0x0f = tab
     jne mloop5
     call swap
 mloop5:
-    cmp al, 0x42
+    ;read key
+    cmp al, 0x42 ;0x42 = f8
     je mloop7
-    cmp al, 0x43
+
+    ;write key
+    cmp al, 0x43 ;0x43 = f9
     jne mloop8
+
+    ;if write keybind if f9, then ah = 0x43 automatically
+    ;mov ah, 0x43
     pusha
     push es
     push 0xb800
@@ -173,6 +182,8 @@ mloop6:
     pop es
     popa
 mloop7:
+    ;if read keybind is f8, then ah = 0x42 automatically
+    ;mov ah, 0x42
     pusha
     push es
     push 0xb800 + 0xa*0x2
@@ -185,16 +196,19 @@ mloop7:
     mov al, 0x0
     mov si, DAP - 0x7000
     int 0x13
+
     jc main
     popa
     jmp draw
 mloop8:
-    cmp al, 0x86
+    cmp al, 0x86 ;0x86 = f12
     jne mloop
     xor si, si
     lodsw
+
     cmp ax, 0x9090
     jne mloop
+
     call 0x7000
     jmp mloop
 
