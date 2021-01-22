@@ -156,6 +156,10 @@ mloop4:
     jne mloop5
     call swap
 mloop5:
+
+    ;if read keybind is f8, then ah = 0x42 automatically
+    ;mov ah, 0x42
+
     ;read key
     cmp al, 0x42 ;0x42 = f8
     je mloop7
@@ -166,6 +170,7 @@ mloop5:
 
     ;if write keybind if f9, then ah = 0x43 automatically
     ;mov ah, 0x43
+
     pusha
     push es
     push 0xb800
@@ -182,8 +187,6 @@ mloop6:
     pop es
     popa
 mloop7:
-    ;if read keybind is f8, then ah = 0x42 automatically
-    ;mov ah, 0x42
     pusha
     push es
     push 0xb800 + 0xa*0x2
